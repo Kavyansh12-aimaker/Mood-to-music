@@ -10,7 +10,7 @@ export const About: React.FC = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-12 text-center"
       >
-        <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl">
+        <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
           <span className="text-black font-display font-black text-3xl tracking-tighter">M-M</span>
         </div>
         

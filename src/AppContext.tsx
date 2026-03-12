@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CategoryId, Song, AppState } from './types';
+import { CategoryId, Song, AppState, UserProfile } from './types';
 import { SONGS } from './constants';
+import { auth, db } from './firebase';
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User as FirebaseUser } from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface AppContextType extends AppState {
   setCategory: (category: CategoryId | null) => void;
@@ -11,6 +14,13 @@ interface AppContextType extends AppState {
   resetTrackCount: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  connectSpotify: () => Promise<void>;
+  logoutSpotify: () => Promise<void>;
+  fetchPlaylists: (query: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
+  user: UserProfile | null;
+  isAuthLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -22,15 +32,131 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentSong: null,
     isPlaying: false,
     trackCount: 0,
+    isSpotifyConnected: false,
+    spotifyUser: null,
+    spotifyPlaylists: [],
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setIsAuthLoading(true);
+      if (firebaseUser) {
+        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+        if (userDoc.exists()) {
+          setUser(userDoc.data() as UserProfile);
+        } else {
+          const newUser: UserProfile = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            displayName: firebaseUser.displayName || '',
+            photoURL: firebaseUser.photoURL || '',
+            createdAt: new Date().toISOString(),
+          };
+          await setDoc(doc(db, 'users', firebaseUser.uid), {
+            ...newUser,
+            createdAt: serverTimestamp(),
+          });
+          setUser(newUser);
+        }
+      } else {
+        setUser(null);
+      }
+      setIsAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('moodtomusic_favorites', JSON.stringify(state.favorites));
   }, [state.favorites]);
 
+  useEffect(() => {
+    checkSpotifyStatus();
+    
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SPOTIFY_AUTH_SUCCESS') {
+        checkSpotifyStatus();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const checkSpotifyStatus = async () => {
+    try {
+      const res = await fetch('/api/auth/spotify/status');
+      const { connected } = await res.json();
+      if (connected) {
+        const userRes = await fetch('/api/spotify/me');
+        const user = await userRes.json();
+        setState(prev => ({ ...prev, isSpotifyConnected: true, spotifyUser: user }));
+      } else {
+        setState(prev => ({ ...prev, isSpotifyConnected: false, spotifyUser: null }));
+      }
+    } catch (error) {
+      console.error('Failed to check Spotify status:', error);
+    }
+  };
+
+  const connectSpotify = async () => {
+    try {
+      const res = await fetch('/api/auth/spotify/url');
+      const { url } = await res.json();
+      window.open(url, 'spotify_auth', 'width=600,height=700');
+    } catch (error) {
+      console.error('Failed to get Spotify auth URL:', error);
+    }
+  };
+
+  const logoutSpotify = async () => {
+    try {
+      await fetch('/api/auth/spotify/logout', { method: 'POST' });
+      setState(prev => ({ ...prev, isSpotifyConnected: false, spotifyUser: null }));
+    } catch (error) {
+      console.error('Failed to logout from Spotify:', error);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const setCategory = (category: CategoryId | null) => {
     setState(prev => ({ ...prev, currentCategory: category }));
+    if (category) {
+      fetchPlaylists(category);
+    }
+  };
+
+  const fetchPlaylists = async (query: string) => {
+    if (!state.isSpotifyConnected) return;
+    
+    try {
+      const res = await fetch(`/api/spotify/playlists?q=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setState(prev => ({ ...prev, spotifyPlaylists: data.items }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch playlists:', error);
+    }
   };
 
   const toggleFavorite = (songId: string) => {
@@ -88,7 +214,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       nextSong,
       resetTrackCount,
       searchQuery,
-      setSearchQuery
+      setSearchQuery,
+      connectSpotify,
+      logoutSpotify,
+      fetchPlaylists,
+      loginWithGoogle,
+      logout,
+      user,
+      isAuthLoading
     }}>
       {children}
     </AppContext.Provider>

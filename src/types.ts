@@ -28,4 +28,15 @@ export interface AppState {
   currentSong: Song | null;
   isPlaying: boolean;
   trackCount: number;
+  isSpotifyConnected: boolean;
+  spotifyUser: any | null;
+  spotifyPlaylists: any[];
+}
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL: string;
+  createdAt: string;
 }
