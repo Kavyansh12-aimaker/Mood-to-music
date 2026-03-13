@@ -19,151 +19,142 @@ export const Playlist: React.FC = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-20">
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        onClick={() => setCategory(null)}
-        className="flex items-center gap-3 text-white/40 hover:text-white mb-12 group transition-colors"
-      >
-        <div className="w-8 h-8 glass rounded-full flex items-center justify-center group-hover:-translate-x-1 transition-transform">
-          <ArrowLeft className="w-4 h-4" />
-        </div>
-        <span className="text-xs font-display font-bold tracking-widest uppercase">Back to Activities</span>
-      </motion.button>
-
-      <div className="mb-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative h-[400px] md:h-[500px] rounded-[3rem] overflow-hidden glass shadow-2xl group"
+    <div className="min-h-screen bg-ink text-white selection:bg-gold/30">
+      <div className="max-w-7xl mx-auto px-6 md:px-20 py-20">
+        <motion.button
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => setCategory(null)}
+          className="flex items-center gap-3 text-white/40 hover:text-gold mb-12 group transition-colors"
         >
-          <img 
-            src={activeCategory?.bannerUrl} 
-            alt={activeCategory?.label}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-            referrerPolicy="no-referrer"
-          />
-          <div className={cn("absolute inset-0 opacity-70 bg-gradient-to-t from-black via-black/40 to-transparent")} />
-          
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 md:p-12">
+          <div className="w-10 h-10 border border-white/10 flex items-center justify-center group-hover:border-gold/50 transition-all">
+            <ArrowLeft className="w-4 h-4" />
+          </div>
+          <span className="text-xs tracking-widest-editorial uppercase">Back to Gallery</span>
+        </motion.button>
+
+        <div className="mb-32">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-end">
             <motion.div 
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center gap-3 mb-6"
+              className="md:col-span-8"
             >
-              <div className="h-px w-8 bg-white/20" />
-              <span className="text-xs font-display font-bold tracking-[0.4em] uppercase text-white/60">Curated Playlist</span>
-              <div className="h-px w-8 bg-white/20" />
+              <span className="text-gold font-mono text-xs tracking-[0.5em] uppercase mb-6 block">Curated Collection</span>
+              <h1 className="text-[12vw] md:text-[8vw] font-display leading-none italic mb-8">
+                {activeCategory?.label}
+              </h1>
+              <p className="text-xl text-white/40 max-w-2xl font-light leading-relaxed">
+                {activeCategory?.description}
+              </p>
             </motion.div>
 
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-6xl md:text-8xl lg:text-9xl font-display font-bold leading-none tracking-tighter uppercase mb-6"
-            >
-              {activeCategory?.label}
-            </motion.h1>
-
-            <motion.p 
+            <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-base md:text-lg text-white/60 max-w-2xl leading-relaxed mb-10"
+              className="md:col-span-4 flex flex-col items-end border-l border-white/10 pl-12"
             >
-              {activeCategory?.description}
-            </motion.p>
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center gap-8 bg-white/[0.03] border border-white/10 backdrop-blur-xl px-10 py-5 rounded-3xl"
-            >
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-display font-bold tracking-widest uppercase text-white/40 mb-1">Tracks</span>
-                <span className="text-2xl font-display font-bold">{filteredSongs.length}</span>
+              <div className="flex flex-col items-end mb-8">
+                <span className="text-gold font-display text-6xl mb-2">{filteredSongs.length}</span>
+                <span className="text-xs tracking-widest-editorial uppercase text-white/40">Selected Tracks</span>
               </div>
-              <div className="w-px h-10 bg-white/10" />
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-display font-bold tracking-widest uppercase text-white/40 mb-1">Duration</span>
-                <span className="text-2xl font-display font-bold">~45m</span>
+              <div className="flex flex-col items-end">
+                <span className="text-gold font-display text-6xl mb-2">~45</span>
+                <span className="text-xs tracking-widest-editorial uppercase text-white/40">Minutes</span>
               </div>
             </motion.div>
           </div>
-        </motion.div>
-      </div>
 
-      <div className="mb-12">
-        <h2 className="text-2xl font-display font-bold mb-8 flex items-center gap-3">
-          <Music className="w-6 h-6 text-white/40" />
-          Featured Tracks
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          <AnimatePresence mode="popLayout">
-            {filteredSongs.length > 0 ? (
-              filteredSongs.map(song => (
-                <SongCard key={song.id} song={song} />
-              ))
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="col-span-full py-32 text-center glass rounded-[3rem]"
-              >
-                <Music className="w-16 h-16 text-white/10 mx-auto mb-6" />
-                <p className="text-xl font-display font-medium text-white/30">No matches found for your search.</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 1 }}
+            className="mt-20 aspect-[21/9] overflow-hidden border border-white/10"
+          >
+            <img 
+              src={activeCategory?.bannerUrl} 
+              alt={activeCategory?.label}
+              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+              referrerPolicy="no-referrer"
+            />
+          </motion.div>
         </div>
-      </div>
 
-      {isSpotifyConnected && spotifyPlaylists.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-32"
-        >
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-3xl font-display font-bold mb-2">Spotify Playlists</h2>
-              <p className="text-white/40">Real-time recommendations from Spotify for "{activeCategory?.label}"</p>
-            </div>
+        <div className="mb-32">
+          <div className="flex items-center justify-between mb-16 border-b border-white/10 pb-8">
+            <h2 className="text-4xl font-display italic flex items-center gap-4">
+              <Music className="w-8 h-8 text-gold" />
+              The Soundtrack
+            </h2>
+            <span className="text-xs tracking-widest-editorial uppercase text-white/40">Exhibition</span>
           </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12">
+            <AnimatePresence mode="popLayout">
+              {filteredSongs.length > 0 ? (
+                filteredSongs.map(song => (
+                  <SongCard key={song.id} song={song} />
+                ))
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-full py-40 text-center border border-dashed border-white/10"
+                >
+                  <Music className="w-16 h-16 text-white/5 mx-auto mb-6" />
+                  <p className="text-xl font-display italic text-white/20">No archives match your inquiry.</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-            {spotifyPlaylists.map((playlist: any) => (
-              <motion.a
-                key={playlist.id}
-                href={playlist.external_urls.spotify}
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ y: -8 }}
-                className="group block"
-              >
-                <div className="relative aspect-square rounded-2xl overflow-hidden mb-4 glass">
-                  <img 
-                    src={playlist.images?.[0]?.url} 
-                    alt={playlist.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                      <ExternalLink className="w-6 h-6 text-black" />
+        {isSpotifyConnected && spotifyPlaylists.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-40"
+          >
+            <div className="flex items-center justify-between mb-16 border-b border-white/10 pb-8">
+              <div>
+                <h2 className="text-4xl font-display italic mb-2">Spotify Archives</h2>
+                <p className="text-white/40 font-light">External recommendations for "{activeCategory?.label}"</p>
+              </div>
+              <span className="text-xs tracking-widest-editorial uppercase text-white/40">Collaborations</span>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8">
+              {spotifyPlaylists.map((playlist: any) => (
+                <motion.a
+                  key={playlist.id}
+                  href={playlist.external_urls.spotify}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -10 }}
+                  className="group block"
+                >
+                  <div className="relative aspect-square overflow-hidden mb-6 border border-white/10">
+                    <img 
+                      src={playlist.images?.[0]?.url} 
+                      alt={playlist.name}
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gold rounded-full flex items-center justify-center shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                        <ExternalLink className="w-6 h-6 text-ink" />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <h3 className="font-bold text-sm line-clamp-1 group-hover:text-[#1DB954] transition-colors">{playlist.name}</h3>
-                <p className="text-xs text-white/40 line-clamp-1">{playlist.owner.display_name}</p>
-              </motion.a>
-            ))}
-          </div>
-        </motion.div>
-      )}
+                  <h3 className="font-display text-lg italic line-clamp-1 group-hover:text-gold transition-colors">{playlist.name}</h3>
+                  <p className="text-xs tracking-widest-editorial uppercase text-white/30 mt-2">{playlist.owner.display_name}</p>
+                </motion.a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };

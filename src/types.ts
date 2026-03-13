@@ -31,6 +31,7 @@ export interface AppState {
   isSpotifyConnected: boolean;
   spotifyUser: any | null;
   spotifyPlaylists: any[];
+  playbackSource: 'youtube' | 'spotify';
 }
 
 export interface UserProfile {

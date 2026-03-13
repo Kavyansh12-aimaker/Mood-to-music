@@ -24,16 +24,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           className="fixed inset-0 -z-10 bg-[#050505]"
         >
           <div className={cn(
-            "absolute inset-0 opacity-40 blur-[120px] transition-all duration-1000",
+            "absolute inset-0 opacity-20 blur-[120px] transition-all duration-1000",
             activeCategory?.id === 'party' && "bg-gradient-to-tr from-purple-600/40 via-pink-600/20 to-transparent",
             activeCategory?.id === 'travelling' && "bg-gradient-to-tr from-blue-500/40 via-cyan-500/20 to-transparent",
             activeCategory?.id === 'workout' && "bg-gradient-to-tr from-red-600/40 via-orange-600/20 to-transparent",
             activeCategory?.id === 'study' && "bg-gradient-to-tr from-emerald-500/40 via-teal-500/20 to-transparent",
             activeCategory?.id === 'chill' && "bg-gradient-to-tr from-indigo-500/40 via-blue-500/20 to-transparent",
             activeCategory?.id === 'roadtrip' && "bg-gradient-to-tr from-violet-600/40 via-fuchsia-600/20 to-transparent",
-            !currentCategory && "bg-gradient-to-tr from-zinc-800/40 via-zinc-900/20 to-transparent"
+            !currentCategory && "bg-gradient-to-tr from-gold/20 via-zinc-900/20 to-transparent"
           )} />
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[100px]" />
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold/5 rounded-full blur-[100px]" />
         </motion.div>
       </AnimatePresence>
 

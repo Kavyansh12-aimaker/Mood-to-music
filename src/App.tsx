@@ -9,13 +9,13 @@ import { Favorites } from './pages/Favorites';
 import { About } from './pages/About';
 
 function AppContent() {
-  const { currentMood } = useApp();
+  const { currentCategory } = useApp();
 
   return (
     <Layout>
       <Navbar />
       <Routes>
-        <Route path="/" element={currentMood ? <Playlist /> : <Home />} />
+        <Route path="/" element={currentCategory ? <Playlist /> : <Home />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/about" element={<About />} />
       </Routes>

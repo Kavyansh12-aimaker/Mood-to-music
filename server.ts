@@ -72,7 +72,7 @@ async function startServer() {
       return res.status(500).json({ error: "Spotify Client ID not configured" });
     }
 
-    const scope = "user-read-private user-read-email user-library-read user-top-read";
+    const scope = "user-read-private user-read-email user-library-read user-top-read user-modify-playback-state user-read-playback-state";
     const params = new URLSearchParams({
       response_type: "code",
       client_id: SPOTIFY_CLIENT_ID,
@@ -216,6 +216,82 @@ async function startServer() {
         }
       }
       res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed to fetch playlists" });
+    }
+  });
+
+  app.put("/api/spotify/play", async (req, res) => {
+    let token = (req.session as any).spotifyAccessToken;
+    if (!token) {
+      return res.status(401).json({ error: "Not connected to Spotify" });
+    }
+
+    const { uri } = req.body;
+    if (!uri) return res.status(400).json({ error: "URI required" });
+
+    const playTrack = async (accessToken: string) => {
+      return axios.put(
+        "https://api.spotify.com/v1/me/player/play",
+        { uris: [uri] },
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+    };
+
+    try {
+      await playTrack(token);
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        try {
+          token = await refreshSpotifyToken(req);
+          await playTrack(token);
+          return res.json({ success: true });
+        } catch (refreshError) {
+          return res.status(401).json({ error: "Session expired" });
+        }
+      }
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed to play" });
+    }
+  });
+
+  app.put("/api/spotify/pause", async (req, res) => {
+    let token = (req.session as any).spotifyAccessToken;
+    if (!token) return res.status(401).json({ error: "Not connected" });
+
+    try {
+      await axios.put("https://api.spotify.com/v1/me/player/pause", {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        token = await refreshSpotifyToken(req);
+        await axios.put("https://api.spotify.com/v1/me/player/pause", {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        return res.json({ success: true });
+      }
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed to pause" });
+    }
+  });
+
+  app.put("/api/spotify/resume", async (req, res) => {
+    let token = (req.session as any).spotifyAccessToken;
+    if (!token) return res.status(401).json({ error: "Not connected" });
+
+    try {
+      await axios.put("https://api.spotify.com/v1/me/player/play", {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        token = await refreshSpotifyToken(req);
+        await axios.put("https://api.spotify.com/v1/me/player/play", {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        return res.json({ success: true });
+      }
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed to resume" });
     }
   });
 

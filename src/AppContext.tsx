@@ -8,9 +8,9 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 interface AppContextType extends AppState {
   setCategory: (category: CategoryId | null) => void;
   toggleFavorite: (songId: string) => void;
-  playSong: (song: Song) => void;
-  togglePlay: () => void;
-  nextSong: () => void;
+  playSong: (song: Song) => Promise<void>;
+  togglePlay: () => Promise<void>;
+  nextSong: () => Promise<void>;
   resetTrackCount: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -35,6 +35,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     isSpotifyConnected: false,
     spotifyUser: null,
     spotifyPlaylists: [],
+    playbackSource: 'youtube',
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -168,36 +169,72 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
-  const playSong = (song: Song) => {
-    // Redirect to Spotify
-    window.open(song.spotifyUrl, '_blank');
+  const playSong = async (song: Song) => {
+    let source: 'youtube' | 'spotify' = 'youtube';
+
+    // 1. Try to play via Spotify API if connected
+    if (state.isSpotifyConnected) {
+      try {
+        const trackId = song.spotifyUrl.split('/track/')[1]?.split('?')[0];
+        if (trackId) {
+          const res = await fetch('/api/spotify/play', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uri: `spotify:track:${trackId}` })
+          });
+          
+          if (res.ok) {
+            source = 'spotify';
+          } else {
+            // If failed (e.g. no active device), fallback to YouTube in-app
+            source = 'youtube';
+          }
+        } else {
+          source = 'youtube';
+        }
+      } catch (error) {
+        console.error('Failed to play via Spotify API:', error);
+        source = 'youtube';
+      }
+    } else {
+      // Not connected to Spotify, use YouTube in-app
+      source = 'youtube';
+    }
     
     setState(prev => ({ 
       ...prev, 
       currentSong: song, 
       isPlaying: true,
-      trackCount: prev.trackCount + 1
+      trackCount: prev.trackCount + 1,
+      playbackSource: source
     }));
   };
 
-  const togglePlay = () => {
-    setState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+  const togglePlay = async () => {
+    const newIsPlaying = !state.isPlaying;
+    
+    if (state.playbackSource === 'spotify' && state.isSpotifyConnected) {
+      try {
+        const endpoint = newIsPlaying ? '/api/spotify/resume' : '/api/spotify/pause';
+        await fetch(endpoint, { method: 'PUT' });
+      } catch (error) {
+        console.error('Failed to toggle Spotify playback:', error);
+      }
+    }
+
+    setState(prev => ({ ...prev, isPlaying: newIsPlaying }));
   };
 
-  const nextSong = () => {
+  const nextSong = async () => {
     if (!state.currentSong) return;
     const currentPlaylist = SONGS.filter(s => s.category === state.currentCategory);
     if (currentPlaylist.length === 0) return;
     
     const currentIndex = currentPlaylist.findIndex(s => s.id === state.currentSong?.id);
     const nextIndex = (currentIndex + 1) % currentPlaylist.length;
+    const nextSongObj = currentPlaylist[nextIndex];
     
-    setState(prev => ({ 
-      ...prev, 
-      currentSong: currentPlaylist[nextIndex], 
-      isPlaying: true,
-      trackCount: prev.trackCount + 1
-    }));
+    await playSong(nextSongObj);
   };
 
   const resetTrackCount = () => {

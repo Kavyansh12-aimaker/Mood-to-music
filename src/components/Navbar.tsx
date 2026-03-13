@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Heart, Home, Info, Music2, LogOut, User, LogIn } from 'lucide-react';
+import { Search, Heart, Home, Info, Music2, LogOut, User, LogIn, Archive, ScrollText, Compass } from 'lucide-react';
 import { useApp } from '../AppContext';
 import { cn } from '../utils';
 
@@ -15,115 +15,126 @@ export const Navbar: React.FC = () => {
     user,
     loginWithGoogle,
     logout,
-    isAuthLoading
+    isAuthLoading,
+    setCategory,
+    currentCategory
   } = useApp();
   const location = useLocation();
 
   return (
-    <nav className="sticky top-0 z-50 w-full px-6 py-6">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-12 h-12 bg-white flex items-center justify-center rounded-xl group-hover:rotate-6 transition-transform duration-500 shadow-xl">
-            <span className="text-black font-display font-black text-lg tracking-tighter">M-M</span>
-          </div>
-          <span className="text-xl font-display font-bold tracking-tight uppercase">Mood To Music</span>
-        </Link>
+    <nav className="sticky top-0 z-50 w-full bg-ink/80 backdrop-blur-md border-b border-white/5">
+      <div className="max-w-7xl mx-auto px-6 md:px-20 h-24 flex items-center justify-between">
+        <div className="flex items-center gap-12">
+          <Link 
+            to="/" 
+            onClick={() => setCategory(null)}
+            className="flex items-center gap-3 group"
+          >
+            <div className="w-10 h-10 bg-gold text-ink rounded-xl flex items-center justify-center font-display font-bold text-xl group-hover:scale-110 transition-transform">
+              M
+            </div>
+            <span className="font-display font-bold text-2xl tracking-tighter group-hover:text-gold transition-colors">
+              MUSE<span className="italic font-normal text-white/40">SONIC</span>
+            </span>
+          </Link>
 
-        <div className="hidden md:flex items-center gap-1 p-1 glass rounded-full">
-          <NavLink to="/" label="Discover" active={location.pathname === '/'} />
-          <NavLink to="/favorites" label="Library" active={location.pathname === '/favorites'} />
-          <NavLink to="/about" label="About" active={location.pathname === '/about'} />
+          <nav className="hidden md:flex items-center gap-8">
+            <Link 
+              to="/"
+              onClick={() => setCategory(null)}
+              className={cn(
+                "text-[10px] font-sans font-bold tracking-[0.3em] uppercase transition-all hover:text-gold flex items-center gap-2",
+                location.pathname === '/' && !currentCategory ? "text-gold" : "text-white/40"
+              )}
+            >
+              <Compass className="w-3 h-3" />
+              Exhibition
+            </Link>
+            <Link 
+              to="/favorites"
+              className={cn(
+                "text-[10px] font-sans font-bold tracking-[0.3em] uppercase transition-all hover:text-gold flex items-center gap-2",
+                location.pathname === '/favorites' ? "text-gold" : "text-white/40"
+              )}
+            >
+              <Archive className="w-3 h-3" />
+              Archive
+            </Link>
+            <Link 
+              to="/about"
+              className={cn(
+                "text-[10px] font-sans font-bold tracking-[0.3em] uppercase transition-all hover:text-gold flex items-center gap-2",
+                location.pathname === '/about' ? "text-gold" : "text-white/40"
+              )}
+            >
+              <ScrollText className="w-3 h-3" />
+              Manifesto
+            </Link>
+          </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative group hidden sm:block">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-white transition-colors" />
+        <div className="flex items-center gap-6">
+          <div className="relative group hidden lg:block">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 text-white/30 group-focus-within:text-gold transition-colors" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search Archive..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/[0.03] border border-white/[0.08] rounded-full py-2.5 pl-11 pr-6 w-48 focus:w-64 focus:bg-white/[0.08] focus:outline-none transition-all duration-500 placeholder:text-white/20"
+              className="bg-white/[0.03] border border-white/[0.08] rounded-full py-2 pl-10 pr-6 w-40 focus:w-56 focus:bg-white/[0.05] focus:border-gold/30 focus:outline-none transition-all duration-700 placeholder:text-white/10 text-[10px] font-sans tracking-widest uppercase"
             />
           </div>
 
+          <div className="h-8 w-px bg-white/10 mx-2" />
+
           {isSpotifyConnected ? (
-            <div className="flex items-center gap-2 glass rounded-full pl-2 pr-4 py-1">
-              {spotifyUser?.images?.[0]?.url ? (
-                <img src={spotifyUser.images[0].url} alt="Profile" className="w-8 h-8 rounded-full border border-white/20" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                  <User className="w-4 h-4" />
-                </div>
-              )}
-              <span className="text-sm font-medium hidden lg:block">{spotifyUser?.display_name}</span>
+            <div className="hidden sm:flex items-center gap-3 px-4 py-2 border border-gold/20 rounded-full bg-gold/5">
+              <div className="w-2 h-2 bg-gold rounded-full animate-pulse" />
+              <span className="text-[10px] font-sans font-bold tracking-widest uppercase text-gold">Spotify Linked</span>
               <button 
                 onClick={logoutSpotify}
-                className="ml-2 p-1 hover:text-red-400 transition-colors"
-                title="Logout from Spotify"
+                className="ml-1 text-white/20 hover:text-red-400 transition-colors"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3 h-3" />
               </button>
             </div>
           ) : (
-            <button 
+            <button
               onClick={connectSpotify}
-              className="px-6 py-2.5 bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold text-sm rounded-full transition-all duration-300 flex items-center gap-2 shadow-[0_0_20px_rgba(29,185,84,0.3)] hover:shadow-[0_0_25px_rgba(29,185,84,0.5)]"
+              className="hidden sm:flex items-center gap-2 px-6 py-2.5 bg-gold text-ink rounded-full font-sans font-bold text-[10px] tracking-[0.2em] uppercase hover:scale-105 active:scale-95 transition-all shadow-lg"
             >
-              <Music2 className="w-4 h-4" />
-              <span className="hidden lg:inline">Connect Spotify</span>
+              Connect Spotify
             </button>
           )}
 
-          <div className="w-px h-8 bg-white/10 mx-2" />
-
-          {isAuthLoading ? (
-            <div className="w-10 h-10 glass rounded-full animate-pulse" />
-          ) : user ? (
-            <div className="flex items-center gap-2 glass rounded-full pl-2 pr-4 py-1">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-white/20" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                  <User className="w-4 h-4" />
-                </div>
-              )}
-              <span className="text-sm font-medium hidden lg:block">{user.displayName}</span>
-              <button 
-                onClick={logout}
-                className="ml-2 p-1 hover:text-red-400 transition-colors"
-                title="Sign Out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-[10px] font-sans font-bold tracking-widest uppercase text-white/80">{user.displayName}</p>
+                <button 
+                  onClick={logout}
+                  className="text-[9px] font-sans font-bold tracking-widest uppercase text-white/30 hover:text-gold transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+              <img 
+                src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`} 
+                alt={user.displayName || ''} 
+                className="w-10 h-10 rounded-xl border border-gold/30 p-0.5"
+              />
             </div>
           ) : (
-            <button 
+            <button
               onClick={loginWithGoogle}
-              className="px-6 py-2.5 bg-white hover:bg-white/90 text-black font-bold text-sm rounded-full transition-all duration-300 flex items-center gap-2"
+              disabled={isAuthLoading}
+              className="flex items-center gap-2 px-6 py-2.5 border border-white/10 hover:border-gold/30 rounded-full font-sans font-bold text-[10px] tracking-[0.2em] uppercase transition-all hover:bg-gold/5"
             >
-              <LogIn className="w-4 h-4" />
-              Sign In
+              {isAuthLoading ? 'Authenticating...' : 'Sign In'}
             </button>
           )}
-
-          <button className="w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
-            <Heart className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </nav>
   );
 };
-
-const NavLink: React.FC<{ to: string; label: string; active: boolean }> = ({ to, label, active }) => (
-  <Link
-    to={to}
-    className={cn(
-      "px-6 py-2 rounded-full text-sm font-medium transition-all duration-300",
-      active ? "bg-white text-black" : "text-white/50 hover:text-white"
-    )}
-  >
-    {label}
-  </Link>
-);
